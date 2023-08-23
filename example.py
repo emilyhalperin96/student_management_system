@@ -8,6 +8,7 @@ class AgeCalculator(QWidget):
 
         #returns the parent of the class that you're calling
         super().__init__()
+        self.setWindowTitle('Age Calculator')
         grid = QGridLayout()
 
 
