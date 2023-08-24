@@ -59,17 +59,39 @@ class InsertDialog(QDialog):
         layout = QVBoxLayout()
 
         #Add Student Name Widget
-        student_name = QLineEdit()
-        student_name.setPlaceholderText('Name')
-        layout.addWidget(student_name)
+        self.student_name = QLineEdit()
+        self.student_name.setPlaceholderText('Name')
+        layout.addWidget(self.student_name)
 
         # Add Combo box of courses
-        course_name = QComboBox()
+        self.course_name = QComboBox()
         courses = ['Biology', 'Math', 'Astronomy', 'Physics']
-        course_name.addItems(courses)
-        layout.addWidget(course_name)
+        self.course_name.addItems(courses)
+        layout.addWidget(self.course_name)
+
+        #Add Mobile Widget 
+        self.mobile = QLineEdit()
+        self.mobile.setPlaceholderText('Mobile:')
+        layout.addWidget(self.mobile)
+
+        #Add Submit Button 
+        button = QPushButton('Submit')
+        button.clicked.connect(self.add_student)
 
         self.setLayout(layout)
+    
+    def add_student(self):
+        name = self.student_name.text()
+        course = self.course_name.itemText(self.course_name.currentIndex())
+        mobile = self.mobile_name.text()
+        connection = sqlite3.connect('database.db')
+        cursor = connection.cursor()
+        cursor.execute('INSERT INTO students (name, course, mobile) VALUES(?,?,?)', 
+                       (name, course, mobile))
+        connection.commit()
+        cursor.close()
+        connection.close()
+
 
 
 
