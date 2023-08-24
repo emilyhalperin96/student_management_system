@@ -1,5 +1,6 @@
-from PyQt6.QtWidgets import QApplication, QComboBox, QTableWidgetItem, QTableWidget, QDialog, QMainWindow, QVBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton
-from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QApplication, QToolBar, QComboBox, QTableWidgetItem, QTableWidget, QDialog, QMainWindow, QVBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton
+from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtCore import Qt
 
 import sqlite3
 import sys
@@ -8,13 +9,15 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Student Management System')
+        self.setMinimumSize(800, 600)
 
         file_menu_item = self.menuBar().addMenu('&File')
         help_menu_item = self.menuBar().addMenu('&Help')
+        edit_menu_item = self.menuBar().addMenu('&Edit')
 
         #Add a new student 
 
-        add_student_action = QAction('Add Student', self)
+        add_student_action = QAction(QIcon('icons/add.png'), 'Add Student', self)
         add_student_action.triggered.connect(self.insert)
 
 
@@ -25,12 +28,32 @@ class MainWindow(QMainWindow):
         #Show help at the top 
         about_action.setMenuRole(QAction.MenuRole.NoRole)
 
+
+        search_action = QAction(QIcon('icons/search.png'), 'Search', self)
+        edit_menu_item.addAction(search_action)
+        search_action.triggered.connect(self.search)
+
         #Create table 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(('Id', 'Name', 'Course', 'Mobile'))
         self.table.verticalHeader().setVisible(False) #hide the first column
         self.setCentralWidget(self.table)
+
+        # Create tool bar 
+
+        toolbar = QToolBar()
+        #user can move it around
+        toolbar.setMovable(True)
+        self.addToolBar(toolbar)
+        #add elements to tool bar 
+        toolbar.addAction(add_student_action)
+        toolbar.addAction(search_action)
+
+
+    def search(self):
+        dialog = InsertSearchDialog()
+        dialog.exec()
     
     def load_data(self):
         #create connection
@@ -48,6 +71,40 @@ class MainWindow(QMainWindow):
     def insert(self):
         dialog = InsertDialog()
         dialog.exec()
+
+class InsertSearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+
+        self.student_name = QLineEdit()
+        self.student_name.setPlaceholderText('Name')
+        layout.addWidget(self.student_name)
+
+        button = QPushButton('Search')
+        button.clicked.connect(self.search)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+    
+    def search(self):
+        name = self.student_name.text()
+        connection = sqlite3.connect('database.db')
+        cursor = connection.cursor()
+        result = cursor.execute('SELECT * FROM students WHERE name =?', (name,))
+        rows = list(result)
+        items = main_window.table.findItems(name, Qt.MatchFlag.MatchFixedString)
+        for item in items:
+            main_window.table.item(item.row(), 
+                                   1).setSelected(True)
+        cursor.close()
+        connection.close()
+            
+
 
 class InsertDialog(QDialog):
     def __init__(self):
@@ -77,6 +134,7 @@ class InsertDialog(QDialog):
         #Add Submit Button 
         button = QPushButton('Submit')
         button.clicked.connect(self.add_student)
+        layout.addWidget(button)
 
         self.setLayout(layout)
     
@@ -91,6 +149,8 @@ class InsertDialog(QDialog):
         connection.commit()
         cursor.close()
         connection.close()
+        #loads the data 
+        main_window.load_data()
 
 
 
@@ -98,7 +158,7 @@ class InsertDialog(QDialog):
 
 
 app = QApplication(sys.argv)
-age_calculator = MainWindow()
-age_calculator.show()
-age_calculator.load_data()
+main_window = MainWindow()
+main_window.show()
+main_window.load_data()
 sys.exit(app.exec())
