@@ -42,7 +42,7 @@ class SpeedCalculator(QWidget):
         time = float(self.time_input.text())
 
         #speed 
-        speed = distance/time 
+        speed = distance / time 
 
         #check combo 
 
@@ -54,7 +54,8 @@ class SpeedCalculator(QWidget):
             unit = 'mph'
         
         #display result
-        
+        self.output_label.setText(f'Average Speed: {speed} {unit}')
+
 
 app = QApplication(sys.argv)
 speed_calculator = SpeedCalculator()
