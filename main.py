@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QToolBar, QComboBox, QTableWidgetItem, QTableWidget, QDialog, QMainWindow, QVBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton
+from PyQt6.QtWidgets import QApplication, QToolBar, QStatusBar, QComboBox, QTableWidgetItem, QTableWidget, QDialog, QMainWindow, QVBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import Qt
 
@@ -41,7 +41,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.table)
 
         # Create tool bar 
-
         toolbar = QToolBar()
         #user can move it around
         toolbar.setMovable(True)
@@ -50,9 +49,39 @@ class MainWindow(QMainWindow):
         toolbar.addAction(add_student_action)
         toolbar.addAction(search_action)
 
+        # Create status bar and add status bar elements 
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+
+        #detect a self click
+        self.table.cellClicked.connect(self.cell_clicked)
+
+    def cell_clicked(self):
+        edit_button = QPushButton('Edit Record')
+        edit_button.clicked.connect(self.edit)
+
+        delete_button = QPushButton('Delete Record')
+        delete_button.clicked.connect(self.delete)
+
+        children = self.findChildren(QPushButton) # clear buttons so there are no duplicates
+        if children:
+            for child in children:
+                self.status_bar.removeWidget(child)
+
+
+        self.status_bar.addWidget(edit_button)
+        self.status_bar.addWidget(delete_button)
+    
+    def delete(self):
+        dialog = DeleteDialog()
+        dialog.exec()
 
     def search(self):
         dialog = InsertSearchDialog()
+        dialog.exec()
+
+    def edit(self):
+        dialog = EditDialog()
         dialog.exec()
     
     def load_data(self):
@@ -71,6 +100,14 @@ class MainWindow(QMainWindow):
     def insert(self):
         dialog = InsertDialog()
         dialog.exec()
+
+class EditDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+class DeleteDialog(QDialog):
+    pass
+
 
 class InsertSearchDialog(QDialog):
     def __init__(self):
